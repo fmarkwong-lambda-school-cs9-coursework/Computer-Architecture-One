@@ -33,7 +33,7 @@ function loadMemory() {
 
 function readFile(fileName) {
     const filedata = fs.readFileSync(fileName, "utf8");
-    return filedata.trim().split(/[\r\n]+/g);
+    return filedata.trim().split(/[\r\n]+/g).filter(line => line[0] === '1' || line[0] === '0');
 }
 
 /**

@@ -23,13 +23,16 @@ class CPU {
           0b01000011: this.PRN.bind(this),
           0b00000001: this.HLT.bind(this),
         };
+
+        this.ALU_OPS = [0b10101010];
+
     }
     
     /**
      * Store value in memory address, useful for program loading
      */
     poke(address, value) {
-        // console.log('poke value', value);
+        // console.log('poke value', value.toString(2));
         this.ram.write(address, value);
     }
 
@@ -61,9 +64,9 @@ class CPU {
      */
     alu(op, regA, regB) {
         switch (op) {
-            case 'MUL':
-                // !!! IMPLEMENT ME
-                break;
+          case 0b10101010: // MUL 
+            this.reg[regA] = this.reg[regA] * this.reg[regB];
+            break;
         }
     }
 
@@ -88,8 +91,15 @@ class CPU {
         // Execute the instruction. Perform the actions for the instruction as
         // outlined in the LS-8 spec.
 
-        this.instructionRunner[IR](operandA, operandB);
+      if (this.ALU_OPS.includes(IR)) {
+        this.alu(IR, operandA, operandB);
+      } else {
+        const opCodeFunction = this.instructionRunner[IR];
 
+        if (!opCodeFunction) throw Error(`${IR.toString(2)} is not a recognized op code`);
+
+        this.instructionRunner[IR](operandA, operandB);
+      }
         // Increment the PC register to go to the next instruction. Instructions
         this.PC += this.getNumberOfOperands(IR) + 1;
     }
