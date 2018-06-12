@@ -1,3 +1,4 @@
+const fs = require('fs');
 const RAM = require('./ram');
 const CPU = require('./cpu');
 
@@ -8,9 +9,12 @@ const CPU = require('./cpu');
  */
 function loadMemory() {
 
+    const fileName = process.argv[2];
+
+
     // Hardcoded program to print the number 8 on the console
 
-    const program = [ // print8.ls8
+    const builtInprogram = [ // print8.ls8
         "10011001", // LDI R0,8  Store 8 into R0
         "00000000",
         "00001000",
@@ -19,10 +23,17 @@ function loadMemory() {
         "00000001"  // HLT       Halt and quit
     ];
 
+    const program = fileName ? readFile(fileName) : builtInprogram;  
+
     // Load the program into the CPU's memory a byte at a time
     for (let i = 0; i < program.length; i++) {
         cpu.poke(i, parseInt(program[i], 2));
     }
+}
+
+function readFile(fileName) {
+    const filedata = fs.readFileSync(fileName, "utf8");
+    return filedata.trim().split(/[\r\n]+/g);
 }
 
 /**
