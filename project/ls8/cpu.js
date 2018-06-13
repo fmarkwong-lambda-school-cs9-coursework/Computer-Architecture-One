@@ -18,10 +18,14 @@ class CPU {
         // Special-purpose registers
         this.PC = 0; // Program Counter
 
+        this.initializeSP();
+
         this.instructionRunner = {
           0b10011001: this.LDI.bind(this),
           0b01000011: this.PRN.bind(this),
           0b00000001: this.HLT.bind(this),
+          0b01001101: this.PUSH.bind(this),
+          0b01001100: this.POP.bind(this),
         };
 
         this.ALU_OPS = [0b10101010];
@@ -65,7 +69,8 @@ class CPU {
     alu(op, regA, regB) {
         switch (op) {
           case 0b10101010: // MUL 
-            this.reg[regA] = this.reg[regA] * this.reg[regB];
+            // 0xff gets rid of extra high bits, limit to 8 bits
+            this.reg[regA] = this.reg[regA] * this.reg[regB] & 0xff;
             break;
         }
     }
@@ -109,6 +114,22 @@ class CPU {
       return instructionRegister >> 6;
     }
 
+    initializeSP() {
+      this.reg[7] = 242; 
+    }
+
+    incrementSP() {
+      this.reg[7]++;
+    }
+
+    decrementSP() {
+      this.reg[7]--;
+    }
+
+    SP() {
+      return this.reg[7];
+    }
+
     // Set the value of a register to an integer.
     LDI(register, integerValue) {
       this.reg[register] = integerValue;
@@ -121,6 +142,24 @@ class CPU {
     HLT() {
       console.log('finis!');
       this.stopClock();
+    }
+
+    PUSH(regAddress) {
+      this.decrementSP();
+      this.ram.write(this.SP(), this.reg[regAddress]); 
+      // console.log(`pushing ${this.reg[regAddress]} into register ${regAddress} at SP ${this.SP()}`);
+    }
+
+    POP(regAddress) {
+      const value = this.ram.read(this.SP());
+      // console.log(`popping ${value} into register ${regAddress} at SP ${this.SP()}`);
+      this.reg[regAddress] = value;
+      this.incrementSP();
+    }
+
+    RET() {
+      this.ram(this.PC);
+      this.PC = register;
     }
 }
 

@@ -7,7 +7,7 @@ const CPU = require('./cpu');
  *
  * TODO: load this from a file on disk instead of having it hardcoded
  */
-function loadMemory() {
+function loadMemory(cpu) {
 
     const fileName = process.argv[2];
 
