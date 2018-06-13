@@ -20,12 +20,17 @@ class CPU {
 
         this.initializeSP();
 
+        this.jumped = false;
+
         this.instructionRunner = {
           0b10011001: this.LDI.bind(this),
           0b01000011: this.PRN.bind(this),
           0b00000001: this.HLT.bind(this),
           0b01001101: this.PUSH.bind(this),
           0b01001100: this.POP.bind(this),
+          0b01001000: this.CALL.bind(this),
+          0b00001001: this.RET.bind(this),
+          0b10101000: this.ADD.bind(this),
         };
 
         this.ALU_OPS = [0b10101010];
@@ -36,7 +41,6 @@ class CPU {
      * Store value in memory address, useful for program loading
      */
     poke(address, value) {
-        // console.log('poke value', value.toString(2));
         this.ram.write(address, value);
     }
 
@@ -100,13 +104,21 @@ class CPU {
         this.alu(IR, operandA, operandB);
       } else {
         const opCodeFunction = this.instructionRunner[IR];
-
+        // console.log(`${this.PC}: ${IR.toString(2)}`);
         if (!opCodeFunction) throw Error(`${IR.toString(2)} is not a recognized op code`);
 
         this.instructionRunner[IR](operandA, operandB);
       }
         // Increment the PC register to go to the next instruction. Instructions
-        this.PC += this.getNumberOfOperands(IR) + 1;
+        // unless we're doing a CALL or RET.  in that case, the PC has been set to another address
+        // and we need to go to next tick to load the instruction register
+        
+      if (this.jumped) {
+        this.jumped = false;
+        return;
+      }
+
+      this.PC += this.getNumberOfOperands(IR) + 1;
     }
 
     // get value of the 2 high bits
@@ -115,7 +127,7 @@ class CPU {
     }
 
     initializeSP() {
-      this.reg[7] = 242; 
+      this.reg[7] = 0xF4; 
     }
 
     incrementSP() {
@@ -145,21 +157,39 @@ class CPU {
     }
 
     PUSH(regAddress) {
-      this.decrementSP();
-      this.ram.write(this.SP(), this.reg[regAddress]); 
-      // console.log(`pushing ${this.reg[regAddress]} into register ${regAddress} at SP ${this.SP()}`);
+      this.pushStack(this.reg[regAddress]);
     }
 
     POP(regAddress) {
-      const value = this.ram.read(this.SP());
-      // console.log(`popping ${value} into register ${regAddress} at SP ${this.SP()}`);
-      this.reg[regAddress] = value;
-      this.incrementSP();
+      this.reg[regAddress] = this.popStack(); 
+    }
+
+    CALL(regAddress) {
+      // because CALL always has one operand, so we need to do Call opcode + operand
+      // so we need to add 2 to PC to get to next instruction to be saved in stack
+      this.pushStack(this.PC + 2);
+      this.PC = this.reg[regAddress];
+      this.jumped = true;
+    }
+
+    ADD(a, b) {
+      this.reg[a] = this.reg[a] + this.reg[b];
     }
 
     RET() {
-      this.ram(this.PC);
-      this.PC = register;
+      this.PC = this.popStack();
+      this.jumped = true;
+    }
+
+    pushStack(value) {
+      this.decrementSP();
+      this.ram.write(this.SP(), value); 
+    }
+
+    popStack() {
+      const value = this.ram.read(this.SP());
+      this.incrementSP();
+      return value;
     }
 }
 
