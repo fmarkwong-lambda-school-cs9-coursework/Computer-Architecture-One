@@ -9,31 +9,31 @@ const CPU = require('./cpu');
  */
 function loadMemory(cpu) {
 
-    const fileName = process.argv[2];
+  const fileName = process.argv[2];
 
 
-    // Hardcoded program to print the number 8 on the console
+  // Hardcoded program to print the number 8 on the console
 
-    const builtInprogram = [ // print8.ls8
-        "10011001", // LDI R0,8  Store 8 into R0
-        "00000000",
-        "00001000",
-        "01000011", // PRN R0    Print the value in R0
-        "00000000",
-        "00000001"  // HLT       Halt and quit
-    ];
+  const builtInprogram = [ // print8.ls8
+    "10011001", // LDI R0,8  Store 8 into R0
+    "00000000",
+    "00001000",
+    "01000011", // PRN R0    Print the value in R0
+    "00000000",
+    "00000001"  // HLT       Halt and quit
+  ];
 
-    const program = fileName ? readFile(fileName) : builtInprogram;  
+  const program = fileName ? readFile(fileName) : builtInprogram;  
 
-    // Load the program into the CPU's memory a byte at a time
-    for (let i = 0; i < program.length; i++) {
-        cpu.poke(i, parseInt(program[i], 2));
-    }
+  // Load the program into the CPU's memory a byte at a time
+  for (let i = 0; i < program.length; i++) {
+    cpu.poke(i, parseInt(program[i], 2));
+  }
 }
 
 function readFile(fileName) {
-    const filedata = fs.readFileSync(fileName, "utf8");
-    return filedata.trim().split(/[\r\n]+/g).filter(line => line[0] === '1' || line[0] === '0');
+  const filedata = fs.readFileSync(fileName, "utf8");
+  return filedata.trim().split(/[\r\n]+/g).filter(line => line[0] === '1' || line[0] === '0');
 }
 
 /**
