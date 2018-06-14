@@ -2,14 +2,14 @@
 
 10011001 # LDI R0,0xF8
 00000000
-11111000
+11111000 # F8: I0 vector
 10011001 # LDI R1,INTHANDLER
 00000001
-00010001
+00010001 # address 17 to go to INTHANDLER
 10011010 # ST R0,R1  Set the interrupt vector at 0xF8 to INTHANDLER
 00000000
 00000001
-10011001 # LDI R5,1  Set the IM register so we receive timer interrupts
+10011001 # LDI R5,1  Set the IM register to 00000001 so we receive timer interrupts
 00000101
 00000001
 10011001 # LDI R0,LOOP  Infinite loop forever
