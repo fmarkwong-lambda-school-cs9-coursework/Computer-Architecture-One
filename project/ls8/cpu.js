@@ -74,12 +74,14 @@ class CPU {
     clearInterval(this.interruptClock);
   }
 
+  // set first bit
   setIS() {
-    this.reg[6] = 0b00000001;
+    this.reg[6] = this.reg[6] | 0b00000001;
   }
 
+  // clear first bit
   clearIS() {
-    this.reg[6] = 0;
+    this.reg[6] = this.reg[6] & 0b11111110;
   }
 
   IS() {
@@ -123,7 +125,7 @@ class CPU {
    */
   tick() {
 
-    if (this.IS()) {
+    if (this.IS() & 0b00000001) {
       const interrupts = this.IM() & this.IS();
       let interruptHappened = false;
 
@@ -134,7 +136,7 @@ class CPU {
       }
 
       if (interruptHappened) {
-        this.stopInterruptClock();
+        // this.stopInterruptClock(); // not sure if needed
         this.clearIS();
         this.saveState();
         let address = this.ram.read(0xF8); // I0 vector
@@ -240,7 +242,7 @@ class CPU {
 
   IRET() {
     this.restoreState();
-    this.startInterruptClock();
+    // this.startInterruptClock(); not sure if needed
     this.jumped = true;
   }
 
