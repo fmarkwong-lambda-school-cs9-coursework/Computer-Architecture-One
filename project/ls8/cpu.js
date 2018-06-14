@@ -264,7 +264,6 @@ class CPU {
 
     this.FL = this.popStack();
     this.PC = this.popStack();
-    this.startInterruptClock();
   }
 
   pushStack(value) {
