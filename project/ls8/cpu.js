@@ -31,6 +31,10 @@ class CPU {
       0b01001000: this.CALL.bind(this),
       0b00001001: this.RET.bind(this),
       0b10101000: this.ADD.bind(this),
+      0b10011010: this.ST.bind(this),
+      0b00001011: this.IRET.bind(this),
+      0b01010000: this.JMP.bind(this),
+      0b01000010: this.PRA.bind(this),
     };
 
     this.ALU_OPS = [0b10101010];
@@ -51,13 +55,39 @@ class CPU {
     this.clock = setInterval(() => {
       this.tick();
     }, 1); // 1 ms delay == 1 KHz clock == 0.000001 GHz
+
+    this.startInterruptClock();
   }
 
-  /**
-   * Stops the clock
-   */
   stopClock() {
+    this.stopInterruptClock();
     clearInterval(this.clock);
+  }
+
+  startInterruptClock() {
+    this.interruptClock = setInterval(() => {
+      this.setIS();
+    }, 1000); 
+  }
+
+  stopInterruptClock() {
+    clearInterval(this.interruptClock);
+  }
+
+  setIS() {
+    this.reg[6] = 0b00000001;
+  }
+
+  clearIS() {
+    this.reg[6] = 0;
+  }
+
+  IS() {
+    return this.reg[6];
+  }
+
+  IM() {
+    return this.reg[5];
   }
 
   /**
@@ -79,10 +109,38 @@ class CPU {
     }
   }
 
+  saveState() {
+    this.pushStack(this.PC);
+    this.pushStack(this.FL);
+
+    for (let i = 0; i <=6; i++) {
+      this.pushStack(this.reg[i]);
+    }
+  }
+
   /**
    * Advances the CPU one cycle
    */
   tick() {
+
+    if (this.IS()) {
+      const interrupts = this.IM() & this.IS();
+      let interruptHappened = false;
+
+      for (let i = 0; i < 8; i++) {
+        // Right shift interrupts down by i, then mask with 1 to see if that bit was set
+        // let value = (interrupts >> i)
+        if (((interrupts >> i) & 1) == 1) interruptHappened = true;
+      }
+
+      if (interruptHappened) {
+        this.stopInterruptClock();
+        this.clearIS();
+        this.saveState();
+        let address = this.ram.read(0xF8); // I0 vector
+        this.PC = address;
+      }
+    }
 
     // Load the instruction register (IR--can just be a local variable here)
     // from the memory address pointed to by the PC. (I.e. the PC holds the
@@ -90,7 +148,6 @@ class CPU {
     // right now.)
 
     let IR = this.ram.read(this.PC);
-
     // Get the two bytes in memory _after_ the PC in case the instruction
     // needs them.
 
@@ -179,6 +236,35 @@ class CPU {
   RET() {
     this.PC = this.popStack();
     this.jumped = true;
+  }
+
+  IRET() {
+    this.restoreState();
+    this.startInterruptClock();
+    this.jumped = true;
+  }
+
+  ST(registerAIndex, registerBIndex) {
+    this.ram.write(this.reg[registerAIndex], this.reg[registerBIndex]);
+  }
+
+  JMP(registerIndex) {
+    this.PC = this.reg[registerIndex];
+    this.jumped = true;
+  }
+
+  PRA(registerIndex) {
+    console.log(String.fromCharCode(this.reg[registerIndex]));
+  }
+
+  restoreState() {
+    for (let i = 0; i <=6; i++) {
+      this.reg[0] = this.popStack();
+    }
+
+    this.FL = this.popStack();
+    this.PC = this.popStack();
+    this.startInterruptClock();
   }
 
   pushStack(value) {
