@@ -16,13 +16,11 @@ class CPU extends OpCodesMixin(Object) {
   constructor(ram) {
     super();
     this.ram = ram;
-
     this.reg = new Array(8).fill(0); // General-purpose registers R0-R7
 
     // Special-purpose registers
-    this.PC = 0; // Program Counter
+    this.PC = 0;
     this.FL = 0;
-
     this.initializeSP();
 
     this.jumped = false;
@@ -81,24 +79,6 @@ class CPU extends OpCodesMixin(Object) {
     clearInterval(this.interruptClock);
   }
 
-  // set first bit
-  setIS() {
-    this.reg[6] = this.reg[6] | 0b00000001;
-  }
-
-  // clear first bit
-  clearIS() {
-    this.reg[6] = this.reg[6] & 0b11111110;
-  }
-
-
-  IS() {
-    return this.reg[6];
-  }
-
-  IM() {
-    return this.reg[5];
-  }
 
   /**
    * ALU functionality
@@ -116,15 +96,6 @@ class CPU extends OpCodesMixin(Object) {
         // 0xff gets rid of extra high bits, limit to 8 bits
         this.reg[regA] = this.reg[regA] * this.reg[regB] & 0xff;
         break;
-    }
-  }
-
-  saveState() {
-    this.pushStack(this.PC);
-    this.pushStack(this.FL);
-
-    for (let i = 0; i <=6; i++) {
-      this.pushStack(this.reg[i]);
     }
   }
 
@@ -193,6 +164,28 @@ class CPU extends OpCodesMixin(Object) {
     return instructionRegister >> 6;
   }
 
+  IS() {
+    return this.reg[6];
+  }
+
+  // set first bit
+  setIS() {
+    this.reg[6] = this.reg[6] | 0b00000001;
+  }
+
+  // clear first bit
+  clearIS() {
+    this.reg[6] = this.reg[6] & 0b11111110;
+  }
+
+  IM() {
+    return this.reg[5];
+  }
+
+  SP() {
+    return this.reg[7];
+  }
+
   initializeSP() {
     this.reg[7] = 0xF4; 
   }
@@ -205,13 +198,18 @@ class CPU extends OpCodesMixin(Object) {
     this.reg[7]--;
   }
 
-  SP() {
-    return this.reg[7];
+  saveState() {
+    this.pushStack(this.PC);
+    this.pushStack(this.FL);
+
+    for (let i = 0; i <= 6; i++) {
+      this.pushStack(this.reg[i]);
+    }
   }
 
   restoreState() {
-    for (let i = 0; i <=6; i++) {
-      this.reg[0] = this.popStack();
+    for (let i = 6; i >= 0; i--) {
+      this.reg[i] = this.popStack();
     }
 
     this.FL = this.popStack();
@@ -230,5 +228,4 @@ class CPU extends OpCodesMixin(Object) {
   }
 }
 
-// Object.assign(CPU.prototype, OpCodesMixin);
 module.exports = CPU;
