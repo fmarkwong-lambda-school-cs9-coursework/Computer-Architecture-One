@@ -38,6 +38,7 @@ class CPU {
       0b01000010: this.PRA.bind(this),
       0b10100000: this.CMP.bind(this),
       0b01010001: this.JEQ.bind(this),
+      0b01010010: this.JNE.bind(this),
     };
 
     this.ALU_OPS = [0b10101010];
@@ -273,6 +274,11 @@ class CPU {
 
   JEQ(registerAddress) {
     if (this.FL & 0b00000001) this.PC = this.reg[regAddress];
+    this.jumped = true;
+  }
+
+  JNE(registerAddress) {
+    if (~(this.FL & 0b00000001)) this.PC = this.reg[regAddress];
     this.jumped = true;
   }
 
