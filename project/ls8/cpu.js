@@ -17,6 +17,7 @@ class CPU {
 
     // Special-purpose registers
     this.PC = 0; // Program Counter
+    this.FL = 0;
 
     this.initializeSP();
 
@@ -35,6 +36,7 @@ class CPU {
       0b00001011: this.IRET.bind(this),
       0b01010000: this.JMP.bind(this),
       0b01000010: this.PRA.bind(this),
+      0b10100000: this.CMP.bind(this),
     };
 
     this.ALU_OPS = [0b10101010];
@@ -82,6 +84,15 @@ class CPU {
   // clear first bit
   clearIS() {
     this.reg[6] = this.reg[6] & 0b11111110;
+  }
+
+  CMP(regAaddress, regBaddress) {
+    const a = this.reg[regAddress];
+    const b = this.reg[regBddress];
+
+    a === b ? this.FL | 0b00000001 : this.FL & 0b11111110; 
+    a < b   ? this.FL | 0b00000100 : this.FL & 0b11111011; 
+    a > b   ? this.FL | 0b00000010 : this.FL & 0b11111101; 
   }
 
   IS() {
