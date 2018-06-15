@@ -88,14 +88,6 @@ class CPU {
     this.reg[6] = this.reg[6] & 0b11111110;
   }
 
-  CMP(regAaddress, regBaddress) {
-    const a = this.reg[regAddress];
-    const b = this.reg[regBddress];
-
-    a === b ? this.FL | 0b00000001 : this.FL & 0b11111110; 
-    a < b   ? this.FL | 0b00000100 : this.FL & 0b11111011; 
-    a > b   ? this.FL | 0b00000010 : this.FL & 0b11111101; 
-  }
 
   IS() {
     return this.reg[6];
@@ -272,14 +264,27 @@ class CPU {
     console.log(String.fromCharCode(this.reg[registerIndex]));
   }
 
+  CMP(regAaddress, regBaddress) {
+    const a = this.reg[regAaddress];
+    const b = this.reg[regBaddress];
+
+    this.FL = a < b   ? this.FL | 0b00000100 : this.FL & 0b11111011; 
+    this.FL = a > b   ? this.FL | 0b00000010 : this.FL & 0b11111101; 
+    this.FL = a === b ? this.FL | 0b00000001 : this.FL & 0b11111110; 
+  }
+
   JEQ(registerAddress) {
-    if (this.FL & 0b00000001) this.PC = this.reg[regAddress];
-    this.jumped = true;
+    if (this.FL & 0b00000001) {
+      this.PC = this.reg[registerAddress];
+      this.jumped = true;
+    }
   }
 
   JNE(registerAddress) {
-    if (~(this.FL & 0b00000001)) this.PC = this.reg[regAddress];
-    this.jumped = true;
+    if (!(this.FL & 0b00000001)) {
+      this.PC = this.reg[registerAddress];
+      this.jumped = true;
+    }
   }
 
   restoreState() {
