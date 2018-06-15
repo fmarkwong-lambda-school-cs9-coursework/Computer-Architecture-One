@@ -37,6 +37,7 @@ class CPU {
       0b01010000: this.JMP.bind(this),
       0b01000010: this.PRA.bind(this),
       0b10100000: this.CMP.bind(this),
+      0b01010001: this.JEQ.bind(this),
     };
 
     this.ALU_OPS = [0b10101010];
@@ -268,6 +269,11 @@ class CPU {
 
   PRA(registerIndex) {
     console.log(String.fromCharCode(this.reg[registerIndex]));
+  }
+
+  JEQ(registerAddress) {
+    if (this.FL & 0b00000001) this.PC = this.reg[regAddress];
+    this.jumped = true;
   }
 
   restoreState() {
