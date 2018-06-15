@@ -22,7 +22,7 @@ class CPU {
 
     this.jumped = false;
 
-    this.instructionRunner = {
+    this.branchTable = {
       0b10011001: this.LDI.bind(this),
       0b01000011: this.PRN.bind(this),
       0b00000001: this.HLT.bind(this),
@@ -162,11 +162,11 @@ class CPU {
     if (this.ALU_OPS.includes(IR)) {
       this.alu(IR, operandA, operandB);
     } else {
-      const opCodeFunction = this.instructionRunner[IR];
+      const opCodeFunction = this.branchTable[IR];
       // console.log(`${this.PC}: ${IR.toString(2)}`);
       if (!opCodeFunction) throw Error(`${IR.toString(2)} is not a recognized op code`);
 
-      this.instructionRunner[IR](operandA, operandB);
+      this.branchTable[IR](operandA, operandB);
     }
     // Increment the PC register to go to the next instruction. Instructions
     // unless we're doing a CALL or RET.  in that case, the PC has been set to another address
